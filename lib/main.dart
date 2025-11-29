@@ -150,7 +150,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
   void _showTutorial() {
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.9),
+      barrierColor: Colors.black.withValues(alpha: 0.9),
       builder: (context) => const TutorialDialog(),
     );
   }
@@ -364,6 +364,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
                           letterSpacing: 4.0,
                         ),
                       ),
+                      // Helper Text Logic
                       if (_currentMode == AppMode.pomodoro)
                          Padding(
                            padding: const EdgeInsets.only(top: 8.0),
@@ -396,6 +397,9 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
                     color: Colors.white24,
                     size: 32,
                   ),
+                  tooltip: _currentMode == AppMode.clock 
+                      ? "Switch to Timer" 
+                      : "Switch to Clock",
                 ),
               ),
             ),
@@ -410,7 +414,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
                 child: IconButton(
                   onPressed: _areControlsVisible ? _toggleOrientation : null,
                   icon: Icon(
-                    _isLandscape ? Icons.screen_lock_landscape : Icons.screen_lock_portrait,
+                    Icons.screen_rotation_alt,
                     color: Colors.white24,
                     size: 32,
                   ),
@@ -472,34 +476,53 @@ class TutorialDialog extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "GESTURE GUIDE",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Inter',
-                    letterSpacing: 2.0,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "GESTURES",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Inter',
+                      letterSpacing: 2.0,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 30),
-                _buildGuideItem(Icons.touch_app, "Single Tap", "Hide / Show Controls"),
-                _buildGuideItem(Icons.ads_click, "Double Tap", "Toggle Format (Clock)\nStart / Pause (Timer)"),
-                _buildGuideItem(Icons.gesture, "Long Press", "Reset Timer (Pomodoro Mode)"),
-                const SizedBox(height: 40),
-                const Center(
-                  child: Text(
-                    "TAP ANYWHERE TO CLOSE",
-                    style: TextStyle(color: Colors.white30, fontSize: 12),
+                  const SizedBox(height: 20),
+                  _buildGuideItem(Icons.touch_app, "Single Tap", "Hide / Show Controls"),
+                  _buildGuideItem(Icons.ads_click, "Double Tap", "Toggle Format (AM/PM)\nStart / Pause (Pomodoro Timer)"),
+                  _buildGuideItem(Icons.gesture, "Long Press", "Reset Timer (Pomodoro Mode)"),
+                  
+                  const SizedBox(height: 30),
+                  const Text(
+                    "BUTTONS",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Inter',
+                      letterSpacing: 2.0,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 20),
+                  _buildGuideItem(Icons.info_outline, "Top Left", "Show this guide"),
+                  _buildGuideItem(Icons.screen_rotation_alt, "Top Right", "Rotate Screen"),
+                  _buildGuideItem(Icons.swap_horiz, "Bottom Right", "Switch Clock / Pomodoro Timer"),
+
+                  const SizedBox(height: 40),
+                  const Center(
+                    child: Text(
+                      "TAP ANYWHERE TO CLOSE",
+                      style: TextStyle(color: Colors.white30, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
