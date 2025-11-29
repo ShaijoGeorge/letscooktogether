@@ -8,10 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Enforce full screen immersive mode
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  
+
   runApp(const FocusClockApp());
 }
 
@@ -21,12 +21,12 @@ class FocusClockApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Focus Clock',
+      title: 'Lets Cook',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.black,
-        fontFamily: 'Inter', 
+        fontFamily: 'Inter',
         useMaterial3: true,
       ),
       home: const SplashScreen(),
@@ -46,9 +46,9 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(const Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const ClockScreen()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const ClockScreen()));
     });
   }
 
@@ -60,11 +60,7 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.timer_outlined,
-              color: Colors.white,
-              size: 50,
-            ),
+            const Icon(Icons.timer_outlined, color: Colors.white, size: 50),
             const SizedBox(height: 20),
             const Text(
               "Lets Cook Together!",
@@ -112,7 +108,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
   static const int _workDurationSeconds = 25 * 60;
   int _remainingSeconds = _workDurationSeconds;
   bool _isPomodoroRunning = false;
-  bool _isTimerFinished = false; 
+  bool _isTimerFinished = false;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
@@ -140,7 +136,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
   Future<void> _checkFirstRun() async {
     final prefs = await SharedPreferences.getInstance();
     final bool? seenTutorial = prefs.getBool('seenTutorial');
-    
+
     if (seenTutorial == null || seenTutorial == false) {
       _showTutorial();
       await prefs.setBool('seenTutorial', true);
@@ -174,8 +170,8 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
       WakelockPlus.enable();
       if (_isLandscape) {
         SystemChrome.setPreferredOrientations([
-          DeviceOrientation.landscapeLeft, 
-          DeviceOrientation.landscapeRight
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
         ]);
       } else {
         SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -207,7 +203,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
       } else {
         _currentMode = AppMode.clock;
       }
-      _isTimerFinished = false; 
+      _isTimerFinished = false;
       setState(() {
         _areControlsVisible = true;
       });
@@ -221,16 +217,14 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
       _areControlsVisible = true;
     });
     _startHideTimer();
-    
+
     if (_isLandscape) {
       SystemChrome.setPreferredOrientations([
         DeviceOrientation.landscapeLeft,
         DeviceOrientation.landscapeRight,
       ]);
     } else {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-      ]);
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     }
   }
 
@@ -239,7 +233,11 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
   Future<void> _playBeep() async {
     try {
       // Use a short, publicly available beep sound URL
-      await _audioPlayer.play(UrlSource('[https://actions.google.com/sounds/v1/alarms/beep_short.ogg](https://actions.google.com/sounds/v1/alarms/beep_short.ogg)'));
+      await _audioPlayer.play(
+        UrlSource(
+          '[https://actions.google.com/sounds/v1/alarms/beep_short.ogg](https://actions.google.com/sounds/v1/alarms/beep_short.ogg)',
+        ),
+      );
     } catch (e) {
       debugPrint("Error playing sound: $e");
     }
@@ -254,7 +252,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
     } else {
       setState(() {
         _isPomodoroRunning = true;
-        _isTimerFinished = false; 
+        _isTimerFinished = false;
       });
       _pomodoroTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_remainingSeconds > 0) {
@@ -263,12 +261,12 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
           });
         } else {
           _pomodoroTimer?.cancel();
-          
+
           _playBeep();
 
           setState(() {
             _isPomodoroRunning = false;
-            _isTimerFinished = true; 
+            _isTimerFinished = true;
           });
         }
       });
@@ -287,8 +285,9 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
   // --- UI Helpers ---
 
   String _getFormattedTime() {
-    return DateFormat(_is24HourFormat ? 'HH:mm:ss' : 'h:mm:ss a')
-        .format(_currentTime);
+    return DateFormat(
+      _is24HourFormat ? 'HH:mm:ss' : 'h:mm:ss a',
+    ).format(_currentTime);
   }
 
   String _getPomodoroTime() {
@@ -307,7 +306,9 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
     }
 
     Color textColor = Colors.white;
-    if (_currentMode == AppMode.pomodoro && !_isPomodoroRunning && !_isTimerFinished) {
+    if (_currentMode == AppMode.pomodoro &&
+        !_isPomodoroRunning &&
+        !_isTimerFinished) {
       textColor = Colors.white70;
     }
 
@@ -335,7 +336,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
             _toggleFormat();
           } else {
             if (!_isTimerFinished) {
-               _togglePomodoro();
+              _togglePomodoro();
             }
           }
         },
@@ -357,24 +358,29 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
                       Text(
                         displayString,
                         style: TextStyle(
-                          fontSize: 200, 
+                          fontSize: 200,
                           fontWeight: FontWeight.w900,
                           color: textColor,
-                          fontFamily: 'Inter', 
+                          fontFamily: 'Inter',
                           letterSpacing: 4.0,
                         ),
                       ),
                       // Helper Text Logic
                       if (_currentMode == AppMode.pomodoro)
-                         Padding(
-                           padding: const EdgeInsets.only(top: 8.0),
-                           child: Text(
-                            _isTimerFinished 
-                                ? "TAP SCREEN TO RESET" 
-                                : (!_isPomodoroRunning ? "DOUBLE TAP TO START • LONG PRESS TO RESET" : ""),
-                            style: const TextStyle(color: Colors.white24, fontSize: 10),
-                           ),
-                         ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            _isTimerFinished
+                                ? "TAP SCREEN TO RESET"
+                                : (!_isPomodoroRunning
+                                      ? "DOUBLE TAP TO START • LONG PRESS TO RESET"
+                                      : ""),
+                            style: const TextStyle(
+                              color: Colors.white24,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -391,19 +397,19 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
                 child: IconButton(
                   onPressed: _areControlsVisible ? _toggleMode : null,
                   icon: Icon(
-                    _currentMode == AppMode.clock 
-                        ? Icons.timer_outlined 
+                    _currentMode == AppMode.clock
+                        ? Icons.timer_outlined
                         : Icons.access_time,
                     color: Colors.white24,
                     size: 32,
                   ),
-                  tooltip: _currentMode == AppMode.clock 
-                      ? "Switch to Timer" 
+                  tooltip: _currentMode == AppMode.clock
+                      ? "Switch to Timer"
                       : "Switch to Clock",
                 ),
               ),
             ),
-            
+
             // Rotation Toggle Button (Top Right)
             Positioned(
               top: 30,
@@ -450,7 +456,9 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
                   opacity: _areControlsVisible ? 1.0 : 0.0,
                   duration: const Duration(milliseconds: 300),
                   child: Text(
-                    DateFormat('EEEE, MMM d').format(_currentTime).toUpperCase(),
+                    DateFormat(
+                      'EEEE, MMM d',
+                    ).format(_currentTime).toUpperCase(),
                     style: const TextStyle(
                       color: Colors.white24,
                       fontSize: 16,
@@ -472,7 +480,8 @@ class TutorialDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Determine orientation
-    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     return GestureDetector(
       onTap: () => Navigator.of(context).pop(),
@@ -541,8 +550,16 @@ class TutorialDialog extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         _buildGuideItem(Icons.touch_app, "Single Tap", "Hide / Show Controls"),
-        _buildGuideItem(Icons.ads_click, "Double Tap", "Toggle Format (AM/PM)\nStart / Pause (Pomodoro Timer)"),
-        _buildGuideItem(Icons.gesture, "Long Press", "Reset Timer (Pomodoro Mode)"),
+        _buildGuideItem(
+          Icons.ads_click,
+          "Double Tap",
+          "Toggle Format (AM/PM)\nStart / Pause (Pomodoro Timer)",
+        ),
+        _buildGuideItem(
+          Icons.gesture,
+          "Long Press",
+          "Reset Timer (Pomodoro Mode)",
+        ),
       ],
     );
   }
@@ -563,8 +580,16 @@ class TutorialDialog extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         _buildGuideItem(Icons.info_outline, "Top Left", "Show this guide"),
-        _buildGuideItem(Icons.screen_rotation_alt, "Top Right", "Rotate Screen"),
-        _buildGuideItem(Icons.swap_horiz, "Bottom Right", "Switch Clock / Pomodoro Timer"),
+        _buildGuideItem(
+          Icons.screen_rotation_alt,
+          "Top Right",
+          "Rotate Screen",
+        ),
+        _buildGuideItem(
+          Icons.swap_horiz,
+          "Bottom Right",
+          "Switch Clock / Pomodoro Timer",
+        ),
       ],
     );
   }
