@@ -193,8 +193,8 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
                       Text(
                         displayString,
                         style: TextStyle(
-                          fontSize: 120, 
-                          fontWeight: FontWeight.bold,
+                          fontSize: 150, 
+                          fontWeight: FontWeight.w900,
                           color: textColor,
                           fontFamily: 'Courier', 
                           letterSpacing: 4.0,
