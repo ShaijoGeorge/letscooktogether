@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -131,6 +132,27 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
 
     // Start auto-hide timer
     _startHideTimer();
+
+    // Check for tutorial
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkFirstRun());
+  }
+
+  Future<void> _checkFirstRun() async {
+    final prefs = await SharedPreferences.getInstance();
+    final bool? seenTutorial = prefs.getBool('seenTutorial');
+    
+    if (seenTutorial == null || seenTutorial == false) {
+      _showTutorial();
+      await prefs.setBool('seenTutorial', true);
+    }
+  }
+
+  void _showTutorial() {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.9),
+      builder: (context) => const TutorialDialog(),
+    );
   }
 
   @override
@@ -150,7 +172,6 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       WakelockPlus.enable();
-      // Re-enforce current orientation choice
       if (_isLandscape) {
         SystemChrome.setPreferredOrientations([
           DeviceOrientation.landscapeLeft, 
@@ -241,7 +262,6 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
             _remainingSeconds--;
           });
         } else {
-          // Timer finished
           _pomodoroTimer?.cancel();
           
           _playBeep();
@@ -311,7 +331,6 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
           }
         },
         onDoubleTap: () {
-          // Double tap handles functionality (Toggle Format or Pomodoro)
           if (_currentMode == AppMode.clock) {
             _toggleFormat();
           } else {
@@ -327,7 +346,6 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
         },
         child: Stack(
           children: [
-            // Centered Time Display with FittedBox for Landscape support
             Center(
               child: FittedBox(
                 fit: BoxFit.contain,
@@ -362,6 +380,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
               ),
             ),
 
+            // Mode Toggle Button (Bottom Right)
             Positioned(
               bottom: 30,
               right: 30,
@@ -400,6 +419,25 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
               ),
             ),
 
+            // Tutorial Info Button (Top Left)
+            Positioned(
+              top: 30,
+              left: 30,
+              child: AnimatedOpacity(
+                opacity: _areControlsVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 300),
+                child: IconButton(
+                  onPressed: _areControlsVisible ? _showTutorial : null,
+                  icon: const Icon(
+                    Icons.info_outline,
+                    color: Colors.white24,
+                    size: 32,
+                  ),
+                  tooltip: "How to use",
+                ),
+              ),
+            ),
+
             if (_currentMode == AppMode.clock)
               Positioned(
                 bottom: 40,
@@ -419,6 +457,89 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class TutorialDialog extends StatelessWidget {
+  const TutorialDialog({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.of(context).pop(),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "GESTURE GUIDE",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Inter',
+                    letterSpacing: 2.0,
+                  ),
+                ),
+                const SizedBox(height: 30),
+                _buildGuideItem(Icons.touch_app, "Single Tap", "Hide / Show Controls"),
+                _buildGuideItem(Icons.ads_click, "Double Tap", "Toggle Format (Clock)\nStart / Pause (Timer)"),
+                _buildGuideItem(Icons.gesture, "Long Press", "Reset Timer (Pomodoro Mode)"),
+                const SizedBox(height: 40),
+                const Center(
+                  child: Text(
+                    "TAP ANYWHERE TO CLOSE",
+                    style: TextStyle(color: Colors.white30, fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGuideItem(IconData icon, String title, String description) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.white70, size: 28),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
