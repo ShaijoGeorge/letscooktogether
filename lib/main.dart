@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:vibration/vibration.dart';
+import 'package:flutter_beep/flutter_beep.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +21,7 @@ class FocusClockApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Lets Cook Together',
+      title: 'Focus Clock',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
@@ -180,6 +182,11 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
         } else {
           // Timer finished
           _pomodoroTimer?.cancel();
+          
+          // Trigger Vibration & Beep
+          Vibration.vibrate();
+          FlutterBeep.beep();
+
           setState(() {
             _isPomodoroRunning = false;
             _remainingSeconds = _workDurationSeconds;
