@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,12 +34,56 @@ class ClockScreen extends StatefulWidget {
 }
 
 class _ClockScreenState extends State<ClockScreen> {
+  late Timer _timeTimer;
+  DateTime _currentTime = DateTime.now();
+  bool _is24HourFormat = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start the clock ticker
+    _timeTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        _currentTime = DateTime.now();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _timeTimer.cancel();
+    super.dispose();
+  }
+
+  void _toggleFormat() {
+    setState(() {
+      _is24HourFormat = !_is24HourFormat;
+    });
+  }
+
+  String _getFormattedTime() {
+    return DateFormat(_is24HourFormat ? 'HH:mm:ss' : 'h:mm:ss a')
+        .format(_currentTime);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: Colors.black,
-      body: Center(
-        child: Text("00:00:00", style: TextStyle(color: Colors.white, fontSize: 80)),
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _toggleFormat,
+        child: Center(
+          child: Text(
+            _getFormattedTime(),
+            style: const TextStyle(
+              fontSize: 80,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontFamily: 'Courier',
+            ),
+          ),
+        ),
       ),
     );
   }
