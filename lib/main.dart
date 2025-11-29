@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
-import 'package:vibration/vibration.dart';
-import 'package:flutter_beep/flutter_beep.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +61,8 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
   static const int _workDurationSeconds = 25 * 60;
   int _remainingSeconds = _workDurationSeconds;
   bool _isPomodoroRunning = false;
+  bool _isTimerFinished = false; 
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   @override
   void initState() {
@@ -86,11 +87,11 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     WakelockPlus.disable();
-    // Reset orientation preference to system default on dispose
     SystemChrome.setPreferredOrientations([]);
     _timeTimer.cancel();
     _pomodoroTimer?.cancel();
     _hideControlsTimer?.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -135,7 +136,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
       } else {
         _currentMode = AppMode.clock;
       }
-      // Reset visibility when interacting
+      _isTimerFinished = false; 
       setState(() {
         _areControlsVisible = true;
       });
@@ -164,6 +165,15 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
 
   // --- Pomodoro Logic ---
 
+  Future<void> _playBeep() async {
+    try {
+      // Use a short, publicly available beep sound URL
+      await _audioPlayer.play(UrlSource('[https://actions.google.com/sounds/v1/alarms/beep_short.ogg](https://actions.google.com/sounds/v1/alarms/beep_short.ogg)'));
+    } catch (e) {
+      debugPrint("Error playing sound: $e");
+    }
+  }
+
   void _togglePomodoro() {
     if (_isPomodoroRunning) {
       _pomodoroTimer?.cancel();
@@ -173,6 +183,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
     } else {
       setState(() {
         _isPomodoroRunning = true;
+        _isTimerFinished = false; 
       });
       _pomodoroTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
         if (_remainingSeconds > 0) {
@@ -183,13 +194,11 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
           // Timer finished
           _pomodoroTimer?.cancel();
           
-          // Trigger Vibration & Beep
-          Vibration.vibrate();
-          FlutterBeep.beep();
+          _playBeep();
 
           setState(() {
             _isPomodoroRunning = false;
-            _remainingSeconds = _workDurationSeconds;
+            _isTimerFinished = true; 
           });
         }
       });
@@ -200,6 +209,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
     _pomodoroTimer?.cancel();
     setState(() {
       _isPomodoroRunning = false;
+      _isTimerFinished = false;
       _remainingSeconds = _workDurationSeconds;
     });
   }
@@ -219,12 +229,15 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    String displayString = _currentMode == AppMode.clock
-        ? _getFormattedTime()
-        : _getPomodoroTime();
+    String displayString;
+    if (_currentMode == AppMode.clock) {
+      displayString = _getFormattedTime();
+    } else {
+      displayString = _isTimerFinished ? "DONE" : _getPomodoroTime();
+    }
 
     Color textColor = Colors.white;
-    if (_currentMode == AppMode.pomodoro && !_isPomodoroRunning) {
+    if (_currentMode == AppMode.pomodoro && !_isPomodoroRunning && !_isTimerFinished) {
       textColor = Colors.white70;
     }
 
@@ -233,7 +246,11 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          // Single tap toggles controls visibility
+          if (_currentMode == AppMode.pomodoro && _isTimerFinished) {
+            _resetPomodoro();
+            return;
+          }
+
           setState(() {
             _areControlsVisible = !_areControlsVisible;
           });
@@ -248,7 +265,9 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
           if (_currentMode == AppMode.clock) {
             _toggleFormat();
           } else {
-            _togglePomodoro();
+            if (!_isTimerFinished) {
+               _togglePomodoro();
+            }
           }
         },
         onLongPress: () {
@@ -277,12 +296,14 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
                           letterSpacing: 4.0,
                         ),
                       ),
-                      if (_currentMode == AppMode.pomodoro && !_isPomodoroRunning)
-                         const Padding(
-                           padding: EdgeInsets.only(top: 8.0),
+                      if (_currentMode == AppMode.pomodoro)
+                         Padding(
+                           padding: const EdgeInsets.only(top: 8.0),
                            child: Text(
-                            "DOUBLE TAP TO START • LONG PRESS TO RESET",
-                            style: TextStyle(color: Colors.white24, fontSize: 10),
+                            _isTimerFinished 
+                                ? "TAP SCREEN TO RESET" 
+                                : (!_isPomodoroRunning ? "DOUBLE TAP TO START • LONG PRESS TO RESET" : ""),
+                            style: const TextStyle(color: Colors.white24, fontSize: 10),
                            ),
                          ),
                     ],
@@ -291,7 +312,6 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
               ),
             ),
 
-            // Mode Toggle Button (Bottom Right)
             Positioned(
               bottom: 30,
               right: 30,
@@ -330,7 +350,6 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
               ),
             ),
 
-            // Date Display (Bottom Left - Clock Mode Only)
             if (_currentMode == AppMode.clock)
               Positioned(
                 bottom: 40,
