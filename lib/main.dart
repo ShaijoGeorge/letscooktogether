@@ -48,6 +48,9 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
   bool _is24HourFormat = true;
   AppMode _currentMode = AppMode.clock;
 
+  // Orientation State
+  bool _isLandscape = false;
+
   // Pomodoro State
   Timer? _pomodoroTimer;
   static const int _workDurationSeconds = 25 * 60;
@@ -60,6 +63,9 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     WakelockPlus.enable();
 
+    // Start in Portrait mode by default
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+
     _timeTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _currentTime = DateTime.now();
@@ -71,6 +77,8 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     WakelockPlus.disable();
+    // Reset orientation preference to system default on dispose
+    SystemChrome.setPreferredOrientations([]);
     _timeTimer.cancel();
     _pomodoroTimer?.cancel();
     super.dispose();
@@ -81,6 +89,15 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
       WakelockPlus.enable();
+      // Re-enforce current orientation choice
+      if (_isLandscape) {
+        SystemChrome.setPreferredOrientations([
+          DeviceOrientation.landscapeLeft, 
+          DeviceOrientation.landscapeRight
+        ]);
+      } else {
+        SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+      }
     }
   }
 
@@ -100,6 +117,22 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
         _currentMode = AppMode.clock;
       }
     });
+  }
+
+  void _toggleOrientation() {
+    setState(() {
+      _isLandscape = !_isLandscape;
+    });
+    if (_isLandscape) {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    } else {
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+      ]);
+    }
   }
 
   // --- Pomodoro Logic ---
@@ -230,6 +263,21 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
               ),
             ),
             
+            // Rotation Toggle Button (Top Right)
+            Positioned(
+              top: 30,
+              right: 30,
+              child: IconButton(
+                onPressed: _toggleOrientation,
+                icon: Icon(
+                  _isLandscape ? Icons.screen_lock_landscape : Icons.screen_lock_portrait,
+                  color: Colors.white24,
+                  size: 32,
+                ),
+                tooltip: "Rotate Screen",
+              ),
+            ),
+
             // Date Display (Bottom Left - Clock Mode Only)
             if (_currentMode == AppMode.clock)
               Positioned(
