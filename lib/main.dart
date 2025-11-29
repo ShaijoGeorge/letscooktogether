@@ -6,10 +6,10 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Enforce full screen immersive mode
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  
+
   runApp(const FocusClockApp());
 }
 
@@ -24,7 +24,7 @@ class FocusClockApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.black,
-        fontFamily: 'Courier', 
+        fontFamily: 'Inter',
         useMaterial3: true,
       ),
       home: const ClockScreen(),
@@ -92,8 +92,8 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
       // Re-enforce current orientation choice
       if (_isLandscape) {
         SystemChrome.setPreferredOrientations([
-          DeviceOrientation.landscapeLeft, 
-          DeviceOrientation.landscapeRight
+          DeviceOrientation.landscapeLeft,
+          DeviceOrientation.landscapeRight,
         ]);
       } else {
         SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -129,9 +129,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
         DeviceOrientation.landscapeRight,
       ]);
     } else {
-      SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-      ]);
+      SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     }
   }
 
@@ -175,8 +173,9 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
   // --- UI Helpers ---
 
   String _getFormattedTime() {
-    return DateFormat(_is24HourFormat ? 'HH:mm:ss' : 'h:mm:ss a')
-        .format(_currentTime);
+    return DateFormat(
+      _is24HourFormat ? 'HH:mm:ss' : 'h:mm:ss a',
+    ).format(_currentTime);
   }
 
   String _getPomodoroTime() {
@@ -226,21 +225,25 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
                       Text(
                         displayString,
                         style: TextStyle(
-                          fontSize: 150, 
-                          fontWeight: FontWeight.w900,
+                          fontSize: 150,
+                          fontWeight: FontWeight.w700,
                           color: textColor,
-                          fontFamily: 'Courier', 
+                          fontFamily: 'Inter',
                           letterSpacing: 4.0,
                         ),
                       ),
-                      if (_currentMode == AppMode.pomodoro && !_isPomodoroRunning)
-                         const Padding(
-                           padding: EdgeInsets.only(top: 8.0),
-                           child: Text(
+                      if (_currentMode == AppMode.pomodoro &&
+                          !_isPomodoroRunning)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8.0),
+                          child: Text(
                             "TAP TO START • LONG PRESS TO RESET",
-                            style: TextStyle(color: Colors.white24, fontSize: 10),
-                           ),
-                         ),
+                            style: TextStyle(
+                              color: Colors.white24,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -254,15 +257,15 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
               child: IconButton(
                 onPressed: _toggleMode,
                 icon: Icon(
-                  _currentMode == AppMode.clock 
-                      ? Icons.timer_outlined 
+                  _currentMode == AppMode.clock
+                      ? Icons.timer_outlined
                       : Icons.access_time,
                   color: Colors.white24,
                   size: 32,
                 ),
               ),
             ),
-            
+
             // Rotation Toggle Button (Top Right)
             Positioned(
               top: 30,
@@ -270,7 +273,9 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
               child: IconButton(
                 onPressed: _toggleOrientation,
                 icon: Icon(
-                  _isLandscape ? Icons.screen_lock_landscape : Icons.screen_lock_portrait,
+                  _isLandscape
+                      ? Icons.screen_lock_landscape
+                      : Icons.screen_lock_portrait,
                   color: Colors.white24,
                   size: 32,
                 ),
