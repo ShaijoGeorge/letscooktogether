@@ -218,14 +218,14 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
               child: FittedBox(
                 fit: BoxFit.contain,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         displayString,
                         style: TextStyle(
-                          fontSize: 150,
+                          fontSize: 200, 
                           fontWeight: FontWeight.w700,
                           color: textColor,
                           fontFamily: 'Inter',
