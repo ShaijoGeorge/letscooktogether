@@ -60,18 +60,38 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.timer_outlined, color: Colors.white, size: 50),
-            const SizedBox(height: 20),
-            const Text(
-              "Lets Cook Together!",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 15,
-                fontFamily: 'Inter',
-                fontStyle: FontStyle.italic,
-                fontWeight: FontWeight.w100,
+            // 1. Centered Content (App Icon)
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'assets/icon/icon.png',
+                  width: 150,
+                  height: 150,
+                ),
+              ],
+            ),
+          ),
+
+          // 2. Bottom Text
+          const Positioned(
+            bottom: 30, // Distance from the bottom of the screen
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                "by SHAIJO GEORGE",
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 10,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w300,
+                  letterSpacing: 1.2,
+                ),
               ),
             ),
+          ),
             const SizedBox(height: 40),
           ],
         ),
