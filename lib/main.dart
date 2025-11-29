@@ -60,39 +60,49 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // 1. Centered Content (App Icon)
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/icon/icon.png',
-                  width: 150,
-                  height: 150,
-                ),
-              ],
-            ),
-          ),
-
-          // 2. Bottom Text
-          const Positioned(
-            bottom: 30, // Distance from the bottom of the screen
-            left: 0,
-            right: 0,
-            child: Center(
-              child: Text(
-                "by SHAIJO GEORGE",
-                style: TextStyle(
-                  color: Colors.white54,
-                  fontSize: 10,
-                  fontFamily: 'Inter',
-                  fontWeight: FontWeight.w300,
-                  letterSpacing: 1.2,
-                ),
+            // 1. Centered Content (Icon)
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/icon/icon.png',
+                    width: 150,
+                    height: 150,
+                  ),
+                ],
               ),
             ),
-          ),
-            const SizedBox(height: 40),
+
+            // 2. Bottom Info (Credits + Version)
+            const Positioned(
+              bottom: 30,
+              left: 0,
+              right: 0,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "by SHAIJO GEORGE",
+                    style: TextStyle(
+                      color: Colors.white54,
+                      fontSize: 10,
+                      fontFamily: 'Inter',
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  SizedBox(height: 4), // Spacing between name and version
+                  Text(
+                    "v1.0.0",
+                    style: TextStyle(
+                      color: Colors.white24, // Slightly darker than the name
+                      fontSize: 10,
+                      fontFamily: 'Inter',
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
