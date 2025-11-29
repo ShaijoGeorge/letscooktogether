@@ -6,7 +6,10 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Enforce full screen immersive mode
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+  
   runApp(const FocusClockApp());
 }
 
@@ -21,7 +24,7 @@ class FocusClockApp extends StatelessWidget {
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: Colors.black,
-        fontFamily: 'Courier',
+        fontFamily: 'Courier', 
         useMaterial3: true,
       ),
       home: const ClockScreen(),
@@ -56,6 +59,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WakelockPlus.enable();
+
     _timeTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
         _currentTime = DateTime.now();
@@ -80,6 +84,8 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
     }
   }
 
+  // --- Logic Helpers ---
+
   void _toggleFormat() {
     setState(() {
       _is24HourFormat = !_is24HourFormat;
@@ -88,9 +94,15 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
 
   void _toggleMode() {
     setState(() {
-      _currentMode = (_currentMode == AppMode.clock) ? AppMode.pomodoro : AppMode.clock;
+      if (_currentMode == AppMode.clock) {
+        _currentMode = AppMode.pomodoro;
+      } else {
+        _currentMode = AppMode.clock;
+      }
     });
   }
+
+  // --- Pomodoro Logic ---
 
   void _togglePomodoro() {
     if (_isPomodoroRunning) {
@@ -108,6 +120,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
             _remainingSeconds--;
           });
         } else {
+          // Timer finished
           _pomodoroTimer?.cancel();
           setState(() {
             _isPomodoroRunning = false;
@@ -126,8 +139,11 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
     });
   }
 
+  // --- UI Helpers ---
+
   String _getFormattedTime() {
-    return DateFormat(_is24HourFormat ? 'HH:mm:ss' : 'h:mm:ss a').format(_currentTime);
+    return DateFormat(_is24HourFormat ? 'HH:mm:ss' : 'h:mm:ss a')
+        .format(_currentTime);
   }
 
   String _getPomodoroTime() {
@@ -142,45 +158,92 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
         ? _getFormattedTime()
         : _getPomodoroTime();
 
+    Color textColor = Colors.white;
+    if (_currentMode == AppMode.pomodoro && !_isPomodoroRunning) {
+      textColor = Colors.white70;
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
           if (_currentMode == AppMode.clock) {
-            _toggleFormat(); 
+            _toggleFormat();
           } else {
             _togglePomodoro();
           }
         },
         onLongPress: () {
-          if (_currentMode == AppMode.pomodoro) _resetPomodoro();
+          if (_currentMode == AppMode.pomodoro) {
+            _resetPomodoro();
+          }
         },
         child: Stack(
           children: [
+            // Centered Time Display with FittedBox for Landscape support
             Center(
-              child: Text(
-                displayString,
-                style: const TextStyle(
-                  fontSize: 80,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  fontFamily: 'Courier',
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        displayString,
+                        style: TextStyle(
+                          fontSize: 120, 
+                          fontWeight: FontWeight.bold,
+                          color: textColor,
+                          fontFamily: 'Courier', 
+                          letterSpacing: 4.0,
+                        ),
+                      ),
+                      if (_currentMode == AppMode.pomodoro && !_isPomodoroRunning)
+                         const Padding(
+                           padding: EdgeInsets.only(top: 8.0),
+                           child: Text(
+                            "TAP TO START • LONG PRESS TO RESET",
+                            style: TextStyle(color: Colors.white24, fontSize: 10),
+                           ),
+                         ),
+                    ],
+                  ),
                 ),
               ),
             ),
+
+            // Mode Toggle Button (Bottom Right)
             Positioned(
               bottom: 30,
               right: 30,
               child: IconButton(
                 onPressed: _toggleMode,
                 icon: Icon(
-                  _currentMode == AppMode.clock ? Icons.timer_outlined : Icons.access_time,
+                  _currentMode == AppMode.clock 
+                      ? Icons.timer_outlined 
+                      : Icons.access_time,
                   color: Colors.white24,
                   size: 32,
                 ),
               ),
             ),
+            
+            // Date Display (Bottom Left - Clock Mode Only)
+            if (_currentMode == AppMode.clock)
+              Positioned(
+                bottom: 40,
+                left: 40,
+                child: Text(
+                  DateFormat('EEEE, MMM d').format(_currentTime).toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white24,
+                    fontSize: 16,
+                    fontFamily: 'Courier',
+                  ),
+                ),
+              ),
           ],
         ),
       ),
