@@ -111,6 +111,7 @@ class _SplashScreenState extends State<SplashScreen> {
 }
 
 enum AppMode { clock, pomodoro }
+enum ClockFormat { h24, h12AmPm, h12 }
 
 class ClockScreen extends StatefulWidget {
   const ClockScreen({super.key});
@@ -123,7 +124,7 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
   // Clock State
   late Timer _timeTimer;
   DateTime _currentTime = DateTime.now();
-  bool _is24HourFormat = true;
+  ClockFormat _clockFormat = ClockFormat.h12;
   AppMode _currentMode = AppMode.clock;
 
   // Orientation State
@@ -222,7 +223,17 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
 
   void _toggleFormat() {
     setState(() {
-      _is24HourFormat = !_is24HourFormat;
+      switch (_clockFormat) {
+        case ClockFormat.h24:
+          _clockFormat = ClockFormat.h12AmPm; // 1. Switch to 12h AM/PM
+          break;
+        case ClockFormat.h12AmPm:
+          _clockFormat = ClockFormat.h12;     // 2. Switch to 12h clean
+          break;
+        case ClockFormat.h12:
+          _clockFormat = ClockFormat.h24;     // 3. Switch back to 24h
+          break;
+      }
     });
   }
 
@@ -314,10 +325,21 @@ class _ClockScreenState extends State<ClockScreen> with WidgetsBindingObserver {
 
   // --- UI Helpers ---
 
+  // Logic to display the correct string
   String _getFormattedTime() {
-    return DateFormat(
-      _is24HourFormat ? 'HH:mm:ss' : 'h:mm:ss a',
-    ).format(_currentTime);
+    String pattern;
+    switch (_clockFormat) {
+      case ClockFormat.h24:
+        pattern = 'HH:mm:ss'; // 24-hour
+        break;
+      case ClockFormat.h12AmPm:
+        pattern = 'h:mm:ss a'; // 12-hour with AM/PM
+        break;
+      case ClockFormat.h12:
+        pattern = 'h:mm:ss'; // 12-hour without AM/PM
+        break;
+    }
+    return DateFormat(pattern).format(_currentTime);
   }
 
   String _getPomodoroTime() {
